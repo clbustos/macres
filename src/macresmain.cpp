@@ -234,7 +234,7 @@ int decipherPitch(char *pitch_input, int *destination, int dest_size)
 				}
 				while (pitch_input[i] != '#' && pitch_input[i] != 0) i++;
 				i--;
-			} 
+			}
 			// Decode a 2-char pitch value between -2048 and 2047.
 			else
 			{
@@ -247,15 +247,16 @@ int decipherPitch(char *pitch_input, int *destination, int dest_size)
 			}
 		}
 	}
-	//fprintf(stderr, "Number of pitch steps found: %d\n", cur_dest_index);
-	//for (i = 0; i < cur_dest_index; i++) {
-	//	fprintf(stderr, "%d ", destination[i]);
-	//}
-	//fprintf(stderr, "\n");
+	fprintf(stderr, "Number of pitch steps found: %d\n", cur_dest_index);
+	for (i = 0; i < cur_dest_index; i++) {
+		fprintf(stderr, "%d ", destination[i]);
+	}
+	fprintf(stderr, "\n");
 	return input_size;
 }
 
 
+//
 void equalizingPitch(double *f0, int num_frames, char *scaleParam, int modulationParam, int flag_t)
 {
 	int i;
@@ -272,9 +273,26 @@ void equalizingPitch(double *f0, int num_frames, char *scaleParam, int modulatio
 	double targetF0;
 	int bias = 0;
 
-	// Identify the desired pitch.
-	if(scaleParam[1] == '#') bias = 1;
 
+	// check if pitch name is correct
+    if(scaleParam==NULL) {
+    fprintf(stderr, "No pitch set\n");
+      exit(-1);
+    }
+	if(strlen(scaleParam)<2 || strlen(scaleParam)>3) {
+      fprintf(stderr, "Incorrect scaleParam definition [AG][ #b][0-8]\n");
+      exit(-1);
+	}
+
+	// Identify the desired pitch.
+	if(scaleParam[1] == '#') 
+	{ 
+		bias = 1;
+	} else if(scaleParam[1] == 'b'){
+		bias = -1;
+	}
+
+	// You could have E# in notation. Really.
 	switch(scaleParam[0])
 	{
 	case 'C':
@@ -284,7 +302,7 @@ void equalizingPitch(double *f0, int num_frames, char *scaleParam, int modulatio
 		scale = -7+bias;
 		break;
 	case 'E':
-		scale = -5;
+		scale = -5+bias;
 		break;
 	case 'F':
 		scale = -4+bias;
@@ -296,15 +314,15 @@ void equalizingPitch(double *f0, int num_frames, char *scaleParam, int modulatio
 		scale = bias;
 		break;
 	case 'B':
-		scale = 2;
+		scale = 2+bias;
 		break;
 	}
-	octave = scaleParam[1+bias]-'0' - 4;
+	octave = scaleParam[1+abs(bias)]-'0' - 4;
 	targetF0 = 440 * pow(2.0,(double)octave) * pow(2.0, (double)scale/12.0);
 	targetF0 *= pow(2, (double)flag_t/120);
 
 	double tmp;
-	
+
 	if(averageF0 != 0.0)
 	{
 		for(i = 0;i < num_frames;i++)
@@ -408,7 +426,7 @@ void f0Lpf(double *f0, int num_frames, int flag_d)
 	double addvalue = 0;
 	double* newf0;
 	newf0 = (double*)malloc(sizeof(double) * num_frames);
-		for(i = 0; i < min(num_frames-1, flag_d); i++) 
+		for(i = 0; i < min(num_frames-1, flag_d); i++)
 	{
 		if(f0[i] != 0.0)
 		{
@@ -417,7 +435,7 @@ void f0Lpf(double *f0, int num_frames, int flag_d)
 		}
 	}
 	for(i = 0; i < num_frames; i++)
-	{	
+	{
 			if(i - flag_d -1 >= 0)
 		{
 			if(f0[i - flag_d -1] != 0.0)
@@ -436,7 +454,7 @@ void f0Lpf(double *f0, int num_frames, int flag_d)
 		}
 		if(f0[i] != 0)
 		{
-			newf0[i] = addvalue / addcount; 
+			newf0[i] = addvalue / addcount;
 		}
 		else
 		{
@@ -458,7 +476,7 @@ void createWaveSpec(double *waveform, int xLen, int fftl, int equLen, fft_comple
 	fft_complex		*waveSpec;					// Specgram
 	waveBuff = (double *)malloc(sizeof(double) * fftl);
 	waveSpec = (fft_complex *)malloc(sizeof(fft_complex) * fftl);
-	wave_f_fft = fft_plan_dft_r2c_1d(fftl, waveBuff, waveSpec, FFT_ESTIMATE);	
+	wave_f_fft = fft_plan_dft_r2c_1d(fftl, waveBuff, waveSpec, FFT_ESTIMATE);
 
 	int offset_ms;
 
@@ -467,7 +485,7 @@ void createWaveSpec(double *waveform, int xLen, int fftl, int equLen, fft_comple
 		offset_ms = i * fftl / 2;
 		// Copy the data.
 		for (j = 0; j < fftl; j++) {
-			waveBuff[j] = waveform[offset_ms + j] * 
+			waveBuff[j] = waveform[offset_ms + j] *
 				(0.5 - 0.5 * cos(2.0*PI*(double)j/(double)fftl)); // Multiply the window.
 		}
 
@@ -499,7 +517,7 @@ void rebuildWave(double *waveform, int xLen, int fftl, int equLen, fft_complex *
 	fft_complex		*waveSpec;	// Spectrogram.
 	waveBuff = (double *)malloc(sizeof(double) * fftl);
 	waveSpec = (fft_complex *)malloc(sizeof(fft_complex) * fftl);
-	wave_i_fft = fft_plan_dft_c2r_1d(fftl, waveSpec, waveBuff, FFT_ESTIMATE);	
+	wave_i_fft = fft_plan_dft_c2r_1d(fftl, waveSpec, waveBuff, FFT_ESTIMATE);
 
 	int offset_ms;
 	for(i = 0;i < xLen;i++) waveform[i] = 0;
@@ -522,7 +540,7 @@ void rebuildWave(double *waveform, int xLen, int fftl, int equLen, fft_complex *
 		for(j = 0;j < fftl; j++) waveBuff[j] /= fftl;
 
 		// Copy the data.
-		for(j = 0;j < fftl; j++) waveform[offset_ms + j]  += waveBuff[j]; 
+		for(j = 0;j < fftl; j++) waveform[offset_ms + j]  += waveBuff[j];
 
 	}
 
@@ -554,8 +572,8 @@ void breath2(double *f0, int num_frames, int sample_rate, double *waveform, int 
 	//for(i=0;i < xLen; i++) noiseData[i] *= noiseData[i] * (noiseData[i] < 0)? -1 : 1;//Play around with noise distribution
 	noiseBuff = (double *)malloc(sizeof(double) * fftl);
 	noiseSpec = (fft_complex *)malloc(sizeof(fft_complex) * fftl);
-	noise_f_fft = fft_plan_dft_r2c_1d(fftl, noiseBuff, noiseSpec, FFT_ESTIMATE);	
-	noise_i_fft = fft_plan_dft_c2r_1d(fftl, noiseSpec, noiseBuff, FFT_ESTIMATE);	
+	noise_f_fft = fft_plan_dft_r2c_1d(fftl, noiseBuff, noiseSpec, FFT_ESTIMATE);
+	noise_i_fft = fft_plan_dft_c2r_1d(fftl, noiseSpec, noiseBuff, FFT_ESTIMATE);
 
 	// Prepare the wave FFT.
 	fft_complex		*waveSpec;	// Spectrogram
@@ -595,10 +613,10 @@ void breath2(double *f0, int num_frames, int sample_rate, double *waveform, int 
 		nowIndex = max(0.0, min((double)num_frames-1, (double)(offset_ms + fftl / 2) / sample_rate * 1000 / FRAMEPERIOD));
 		sIndex = min(num_frames -2, (int)nowIndex);
 		eIndex = sIndex + 1;
-		
+
 		nowF0 = (f0[sIndex] == 0 && f0[eIndex] == 0) ?  DEFAULT_F0 :
 				(f0[sIndex] == 0) ? f0[eIndex] :
-				(f0[eIndex] == 0) ? f0[sIndex] : 
+				(f0[eIndex] == 0) ? f0[sIndex] :
 									(f0[eIndex] - f0[sIndex]) * (nowIndex - sIndex) + f0[sIndex];
 
 		specs = 0;
@@ -645,14 +663,14 @@ void breath2(double *f0, int num_frames, int sample_rate, double *waveform, int 
 			noiseSpec[j][0] = 0.0;
 			noiseSpec[j][1] = 0.0;
 		}
-		
+
 		noiseSpec[0][1] = 0.0;
 		noiseSpec[fftl/2][1] = 0.0;
 
 		// Reverse FFT
 		fft_execute(noise_i_fft);
 		for(j = 0;j < fftl; j++) noiseBuff[j] /= fftl;
-		
+
 		// Multiply the window
 		//for(j = 0;j < fftl; j++) noiseBuff[j] *= 0.5 - 0.5*cos(2.0*PI*(double)j/(double)fftl);
 
@@ -662,7 +680,7 @@ void breath2(double *f0, int num_frames, int sample_rate, double *waveform, int 
 			noise[offset_ms + j] += noiseBuff[j] * 0.2;
 		}
 	}
-	
+
 	// Noise synthesis.
 	double noiseRatio = max(0.0, (double)(flag_B - 50) / 50.0);
 	double waveRatio = 1 - noiseRatio;
@@ -697,7 +715,7 @@ void Opening(double *f0, int num_frames, int sample_rate, fft_complex **waveSpec
 
 	volume = pow(10, sRatio * opn / 20);
 	for(j = 0;j < sFreq;j++)
-	{	
+	{
 		volumeMap[j] = volume;
 	}
 	for(;j < eFreq;j++)
@@ -718,7 +736,7 @@ void Opening(double *f0, int num_frames, int sample_rate, fft_complex **waveSpec
 		f0Frame = max(0, min(num_frames-1, (int)((double)((i+1) * fftl / 2) / sample_rate * 1000 / FRAMEPERIOD + 0.5)));
 		if(f0[f0Frame] == 0.0) continue;
 		for(j = 0;j < fftl/2+1;j++)
-		{	
+		{
 			waveSpecgram[i][j][0] *= volumeMap[j];
 			waveSpecgram[i][j][1] *= volumeMap[j];
 		}
@@ -782,8 +800,8 @@ void gFactor(int pCount, int fftl, double **residualSpecgram, int *residualSpecg
 				position = min((double)residualSpecgramLength[i]-1.0001, (double)(j * gRatio));
 				sindex = (int)position;
 				eindex = sindex + 1;
-				residualSpecgram[i][j] = residualSpecgram[i][sindex] + 
-					             (double)(residualSpecgram[i][eindex] - residualSpecgram[i][sindex]) * 
+				residualSpecgram[i][j] = residualSpecgram[i][sindex] +
+					             (double)(residualSpecgram[i][eindex] - residualSpecgram[i][sindex]) *
 								 (double)(position - sindex);
 			}
 		}
@@ -794,8 +812,8 @@ void gFactor(int pCount, int fftl, double **residualSpecgram, int *residualSpecg
 				position = min((double)residualSpecgramLength[i]-1.0001, (double)(j * gRatio));
 				sindex = (int)position;
 				eindex = sindex + 1;
-				residualSpecgram[i][j] = residualSpecgram[i][sindex] + 
-					             (double)(residualSpecgram[i][eindex] - residualSpecgram[i][sindex]) * 
+				residualSpecgram[i][j] = residualSpecgram[i][sindex] +
+					             (double)(residualSpecgram[i][eindex] - residualSpecgram[i][sindex]) *
 								 (double)(position - sindex);
 			}
 		}
@@ -855,7 +873,7 @@ double FrqToPit(double Frq)
 void autoVolume(double *f0, int num_frames, int sample_rate, double *volume, int flag_A)
 {
 	int i;
-	
+
 	if(flag_A == 0)
 	{
 		for(i = 0;i < num_frames; i++) volume[i] = 1.0;
@@ -867,13 +885,13 @@ void autoVolume(double *f0, int num_frames, int sample_rate, double *volume, int
 	{
 		if(f0[i] == 0.0)
 		{
-			volume[i] = 1.0;	
+			volume[i] = 1.0;
 			continue;
 		}
 
-		if (f0[i+1] != 0.0)	
+		if (f0[i+1] != 0.0)
 		{
-			AutoPow = (FrqToPit(f0[i+1]) - FrqToPit(f0[i])) * (441 / (sample_rate * FRAMEPERIOD)) * flag_A; 
+			AutoPow = (FrqToPit(f0[i+1]) - FrqToPit(f0[i])) * (441 / (sample_rate * FRAMEPERIOD)) * flag_A;
 			volume[i] = min(1.2, pow(2, AutoPow * 1));
 
 			continue;
@@ -897,6 +915,21 @@ void autoVolume(double *f0, int num_frames, int sample_rate, double *volume, int
  */
 int main(int argc, char *argv[])
 {
+	enum PARAMS {
+		INPUTFILE=1,
+		OUTPUTFILE=2,
+		NOTENUM=3,
+		VELOCITY=4, 
+		FLAGS=5,
+		OFFSET_MS=6, 
+		NOTELENGTH=7,
+		FIXEDLENGTH=8,
+		END=9,
+		INTENSITY=10,
+		MODULATION=11,
+		TEMPO=12,
+		PITCHBENDS=13
+	};
 	int i;
 
 	double *waveform,*f0,*time_axis,*y;
@@ -909,27 +942,27 @@ int main(int argc, char *argv[])
 	int num_samples;
 	int num_frames;
 
-	if(argc < 3) 
+	if(argc < 3)
 	{
 		printf("Params: inputfile outputfile notenum velocity flags offset_ms notelength");
 		printf(" fixedlength end intensity modulation tempo pitchbends\n");
 		return 0;
 	}
 
-	/*
+/*
 	printf("argc:%d\n", argc);
 	for(i = 0;i < argc-1;i++)
 		printf("%s\n", argv[i]);
-	*/
+*/
 
 	// Parse flags
 	char *string_buf;
 	int cur_char_index;
 	int flag_B = 50; // Breath
-	if(argc > 5 && (string_buf = strchr(argv[5],'B')) != 0)
+	if(argc > 5 && (string_buf = strchr(argv[FLAGS],'B')) != 0)
 	{
-		cur_char_index = string_buf - argv[5];
-		if ((cur_char_index == 0) || (argv[5][cur_char_index - 1] != 'M'))
+		cur_char_index = string_buf - argv[FLAGS];
+		if ((cur_char_index == 0) || (argv[FLAGS][cur_char_index - 1] != 'M'))
 		{
 			sscanf(string_buf+1, "%d", &flag_B);
 			flag_B = max(0, min(100, flag_B));
@@ -937,21 +970,21 @@ int main(int argc, char *argv[])
 	}
 
 	int flag_b = 0; // Consonant strength
-	if(argc > 5 && (string_buf = strchr(argv[5],'b')) != 0)
+	if(argc > 5 && (string_buf = strchr(argv[FLAGS],'b')) != 0)
 	{
-		cur_char_index = string_buf - argv[5];
-		if ((cur_char_index == 0) || (argv[5][cur_char_index - 1] != 'M'))
+		cur_char_index = string_buf - argv[FLAGS];
+		if ((cur_char_index == 0) || (argv[FLAGS][cur_char_index - 1] != 'M'))
 		{
 			sscanf(string_buf+1, "%d", &flag_b);
 			flag_b = max(0, min(100, flag_b));
 		}
 	}
 
-	int flag_t = 0; // 't' flag
-	if(argc > 5 && (string_buf = strchr(argv[5],'t')) != 0)
+	int flag_t = 0; // 't' flag, to transpose X/120 semitones 
+	if(argc > 5 && (string_buf = strchr(argv[FLAGS],'t')) != 0)
 	{
-		cur_char_index = string_buf - argv[5];
-		if ((cur_char_index == 0) || (argv[5][cur_char_index - 1] != 'M'))
+		cur_char_index = string_buf - argv[FLAGS];
+		if ((cur_char_index == 0) || (argv[FLAGS][cur_char_index - 1] != 'M'))
 		{
 			sscanf(string_buf+1, "%d", &flag_t);
 		}
@@ -959,10 +992,10 @@ int main(int argc, char *argv[])
 
 	double flag_g = 0.0; // Gender flag
 	double gRatio;
-	if(argc > 5 && (string_buf = strchr(argv[5],'g')) != 0)
+	if(argc > 5 && (string_buf = strchr(argv[FLAGS],'g')) != 0)
 	{
-		cur_char_index = string_buf - argv[5];
-		if ((cur_char_index == 0) || (argv[5][cur_char_index - 1] != 'M'))
+		cur_char_index = string_buf - argv[FLAGS];
+		if ((cur_char_index == 0) || (argv[FLAGS][cur_char_index - 1] != 'M'))
 		{
 			sscanf(string_buf+1, "%lf", &flag_g);
 			if (flag_g > 100) flag_g = 100;
@@ -975,10 +1008,10 @@ int main(int argc, char *argv[])
 	// Set up the designated frequency.
 	double flag_W = 0.0;
 	double f0Rand = 0;
-	if(argc > 5 && (string_buf = strchr(argv[5], 'W')) != 0)
+	if(argc > 5 && (string_buf = strchr(argv[FLAGS], 'W')) != 0)
 	{
-		cur_char_index = string_buf - argv[5];
-		if ((cur_char_index == 0) || (argv[5][cur_char_index - 1] != 'M'))
+		cur_char_index = string_buf - argv[FLAGS];
+		if ((cur_char_index == 0) || (argv[FLAGS][cur_char_index - 1] != 'M'))
 		{
 			sscanf(string_buf+1, "%lf", &flag_W);
 			if (flag_W > 1000) flag_W = 1000;
@@ -990,17 +1023,17 @@ int main(int argc, char *argv[])
 	// Original flag: Hang/multiply? LPF on DIO's F0 analysis result. 0~20 def 5
 	// Can only support the default for now.
 	int flag_d = 5;
-	//if(argc > 5 && (string_buf = strchr(argv[5],'d')) != 0)
+	//if(argc > 5 && (string_buf = strchr(argv[FLAGS],'d')) != 0)
 	//{
 	//	sscanf(string_buf+1, "%d", &flag_d);
 	//	flag_d = max(0, min(20, flag_d));
 	//}
 
 	int flag_A = 0; // Original flag: Correct volume of combined pitch changes.
-	if(argc > 5 && (string_buf = strchr(argv[5],'A')) != 0)
+	if(argc > 5 && (string_buf = strchr(argv[FLAGS],'A')) != 0)
 	{
-		cur_char_index = string_buf - argv[5];
-		if ((cur_char_index == 0) || (argv[5][cur_char_index - 1] != 'M'))
+		cur_char_index = string_buf - argv[FLAGS];
+		if ((cur_char_index == 0) || (argv[FLAGS][cur_char_index - 1] != 'M'))
 		{
 			sscanf(string_buf+1, "%d", &flag_A);
 			flag_A = max(0, min(100, flag_A));
@@ -1008,10 +1041,10 @@ int main(int argc, char *argv[])
 	}
 
 	int flag_O = 0; // Original flag: voice strength
-	if(argc > 5 && (string_buf = strchr(argv[5],'O')) != 0)
+	if(argc > 5 && (string_buf = strchr(argv[FLAGS],'O')) != 0)
 	{
-		cur_char_index = string_buf - argv[5];
-		if ((cur_char_index == 0) || (argv[5][cur_char_index - 1] != 'M'))
+		cur_char_index = string_buf - argv[FLAGS];
+		if ((cur_char_index == 0) || (argv[FLAGS][cur_char_index - 1] != 'M'))
 		{
 			sscanf(string_buf+1, "%d", &flag_O);
 			flag_O = max(-100, min(100, flag_O));
@@ -1021,10 +1054,10 @@ int main(int argc, char *argv[])
 	// Original flag: Change the vowel stretching method: default is loops.
 	// However you can choose to use UTAU's default method.
 	int flag_e = 0;
-	if(argc > 5 && (string_buf = strchr(argv[5],'e')) != 0)
+	if(argc > 5 && (string_buf = strchr(argv[FLAGS],'e')) != 0)
 	{
-		cur_char_index = string_buf - argv[5];
-		if ((cur_char_index == 0) || (argv[5][cur_char_index - 1] != 'M'))
+		cur_char_index = string_buf - argv[FLAGS];
+		if ((cur_char_index == 0) || (argv[FLAGS][cur_char_index - 1] != 'M'))
 		{
 			flag_e = 1;
 		}
@@ -1034,11 +1067,11 @@ int main(int argc, char *argv[])
 
 	int offset_ms; // This is also the starting point, or stp.
 	int cutoff_ms;
-	offset_ms = atoi(argv[6]);
-	cutoff_ms = atoi(argv[9]);
+	offset_ms = atoi(argv[OFFSET_MS]);
+	cutoff_ms = atoi(argv[END]);
 
 	int sample_rate, bits_per_sample;
-	waveform = ReadWaveFile(argv[1], &sample_rate, &bits_per_sample, &num_samples, &offset_ms, &cutoff_ms);
+	waveform = ReadWaveFile(argv[INPUTFILE], &sample_rate, &bits_per_sample, &num_samples, &offset_ms, &cutoff_ms);
 
 	if(waveform == NULL)
 	{
@@ -1084,7 +1117,7 @@ int main(int argc, char *argv[])
 			time_axis[i] = (double)i * FRAMEPERIOD/1000.0;
 		}
 	}
-	
+
 	fftl = getFFTLengthForStar(sample_rate);
 
 	// Acyclic indicator analysis.
@@ -1109,9 +1142,9 @@ int main(int argc, char *argv[])
 	double vRatio;
 
 	inpunum_framesgthMsec = (int)(num_frames*FRAMEPERIOD);// Length of input noise available.
-	lengthMsec = atoi(argv[7]);               // Desired note length
-	snum_framesgthMsec = atoi(argv[8]);             // Length of consonant section.
-	velocity = (double)atoi(argv[4]);         // Consonant velocity.
+	lengthMsec = atoi(argv[NOTELENGTH]);               // Desired note length
+	snum_framesgthMsec = atoi(argv[FIXEDLENGTH]);             // Length of consonant section.
+	velocity = (double)atoi(argv[VELOCITY]);         // Consonant velocity.
 	vRatio = pow(2.0, (1.0 - (velocity / 100.0))); // Consonant expansion/contraction ratio.
 
 	// Guarantee memory for the control parameters.
@@ -1136,7 +1169,7 @@ int main(int argc, char *argv[])
     //printf("%d, %d, %d\n",lengthMsec, offset_ms, sample_rate);
 
 	// Fiddle with F0 before synthesis according to input params.
-	equalizingPitch(f0, num_frames, argv[3], atoi(argv[11]), flag_t);
+	equalizingPitch(f0, num_frames, argv[NOTENUM], atoi(argv[MODULATION]), flag_t);
 
 	// Growing and shrinking the time.
 	int os, st, ed;
@@ -1144,7 +1177,7 @@ int main(int argc, char *argv[])
 	st = snum_framesgthMsec + offset_ms;
 	ed = inpunum_framesgthMsec - cutoff_ms;
 
-	num_frames2 = stretchTime(f0, num_frames, fftl, residualSpecgramIndex, 
+	num_frames2 = stretchTime(f0, num_frames, fftl, residualSpecgramIndex,
 			fixedF0, num_frames2, fixedResidualSpecgramIndex,
 			os/(int)FRAMEPERIOD, st/(int)FRAMEPERIOD, min(ed/(int)FRAMEPERIOD, num_frames-1),
 			lengthMsec, vRatio, flag_e);
@@ -1158,16 +1191,18 @@ int main(int argc, char *argv[])
 	double tempo = 120;
 	int pLen = num_frames2;
 	int pStep = 256;
-	if (argc > 13) 	
+	if (argc > 13)
 	{
-		string_buf = argv[12];
+		string_buf = argv[TEMPO];
+		//printf("Tempo original: %s\n", string_buf);
 		sscanf(string_buf + 1, "%lf", &tempo);
 		// 96 pitch steps in a beat.
 		pStep = (int)(60.0 / 96.0 / tempo * sample_rate + 0.5);
 		pLen = num_samples2 / pStep + 1;
+		//printf("Tempo: %0.3f. Step length: %d\n", tempo, pLen);
 		pitch = (int*)malloc((pLen+1) * sizeof(int));
 		memset(pitch, 0, (pLen+1) * sizeof(int));
-		decipherPitch(argv[13], pitch, pLen);
+		decipherPitch(argv[PITCHBENDS], pitch, pLen);
 	}
 	else
 	{
@@ -1186,7 +1221,7 @@ int main(int argc, char *argv[])
 		cur_step = (int)floor(amt_into_cur_step);
 		amt_into_cur_step -= cur_step;
 		if (cur_step >= pLen) cur_step = pLen - 1;
-		fixedF0[i] *= pow(2, (pitch[cur_step] * (1.0 - amt_into_cur_step) + 
+		fixedF0[i] *= pow(2, (pitch[cur_step] * (1.0 - amt_into_cur_step) +
 				pitch[cur_step + 1] * amt_into_cur_step) / 1200.0);
 	}
 	//createFinalPitch(fixedF0, num_frames2, pitchBend, bLen, num_samples2, offset_ms, sample_rate, tempo);
@@ -1197,7 +1232,7 @@ int main(int argc, char *argv[])
 	//f0Noise(fixedF0, num_frames2, f0Rand);
 
 	//}
-	
+
 	// Apply the 'A' flag.
 	autoVolume(fixedF0, num_frames2, sample_rate, fixedVolume, flag_A);
 
@@ -1257,11 +1292,11 @@ int main(int argc, char *argv[])
 	short *output;
 	double maxAmp;
 	output = (short *)malloc(sizeof(short) * num_samples2);
- 
+
 	// Amplitude normalization.
 	maxAmp = 0.0;
 	double volume;
-	volume = (double)atoi(argv[10]) / 100.0;
+	volume = (double)atoi(argv[INTENSITY]) / 100.0;
 	for(i = 0;i < num_samples2;i++) maxAmp = maxAmp < fabs(y[i]) ? fabs(y[i]) : maxAmp;
 	for(i = 0;i < num_samples2;i++) output[i] = (short)(32768.0*(y[i]*0.5 * volume/maxAmp));
 
@@ -1297,11 +1332,11 @@ int main(int argc, char *argv[])
 	{
 		free(residualSpecgram[i]);
 	}
-	free(residualSpecgram); 
+	free(residualSpecgram);
 	free(fixedResidualSpecgramIndex);
 	free(fixedVolume);
-	free(residualSpecgramIndex); 
-	free(residualSpecgramLength); 
+	free(residualSpecgramIndex);
+	free(residualSpecgramLength);
 
 	for(i = 0;i < equLen;i++) free(waveSpecgram[i]);
 	free(waveSpecgram);

@@ -1,6 +1,6 @@
 OBJS = dio.o matlabfunctions.o platinum.o star.o synthesis.o macresmain.o fft.o wavread.o
 CXX = g++
-CFLAGS = -O -msse3
+CFLAGS = -g -O -msse3
 INCLUDES = -I.
 LIBS = 
 

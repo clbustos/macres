@@ -34,7 +34,7 @@
 // DEFAULT_F0は，0.0.4での新機能．調整の余地はあるが，暫定的に決定する．
 
 // F0推定法 DIO : Distributed Inline-filter Operation
-void dio(double *x, int xLen, int fs, double framePeriod, 
+void dio(double *x, int xLen, int fs, double framePeriod,
 		 double *timeAxis, double *f0);
 int GetNumDIOSamples(int sample_rate, int num_samples, double frame_period);
 
@@ -46,20 +46,20 @@ int getFFTLengthForStar(int fs);
 //void getMinimumPhaseSpectrum(double *inputSpec, fftw_complex *spectrum, fftw_complex *cepstrum, int fftl);
 
 // 非周期性指標推定法 PLATINUM : 名称未定
-void pt100(double *x, int xLen, int fs, double *timeAxis, double *f0,  
+void pt100(double *x, int xLen, int fs, double *timeAxis, double *f0,
 		 double **residualSpecgram);
 
 //tn_fnds v0.0.3 にて追加
-int pt101(double *x, int xLen, int fs, double *timeAxis, double *f0, 
+int pt101(double *x, int xLen, int fs, double *timeAxis, double *f0,
 		 double ***residualSpecgram, int **residualSpecgramLength, int *residualSpecgramIndex);
 
 //tn_fnds v0.0.4 にて追加
 void PulseResidualWindow(double **residualSpecgram, int *residualSpecgramLength, int pCount);
 
 // WORLD Synthesis
-//void synthesis(double *f0, int tLen, double **specgram, double **residualSpecgram, int fftl, double framePeriod, int fs, 
+//void synthesis(double *f0, int tLen, double **specgram, double **residualSpecgram, int fftl, double framePeriod, int fs,
 //			   double *synthesisOut, int xLen);
-void synthesisPt100(double *f0, int tLen, double **residualSpecgram, int fftl, double framePeriod, int fs, 
+void synthesisPt100(double *f0, int tLen, double **residualSpecgram, int fftl, double framePeriod, int fs,
 			   double *synthesisOut, int xLen);
 //void getMinimumPhaseSpectrum(double *inputSpec, fftw_complex *spectrum, fftw_complex *cepstrum, int fftl);
 
@@ -77,6 +77,6 @@ void histc(double *x, int xLen, double *y, int yLen, int *index);
 void interp1(double *t, double *y, int iLen, double *t1, int oLen, double *y1);
 long decimateForF0(double *x, int xLen, double *y, int r);
 void filterForDecimate(double *x, int xLen, double *y, int r);
-int myround(double x);
+int  myround(double x);
 void diff(double *x, int xLength, double *ans);
 void interp1Q(double x, double shift, double *y, int xLength, double *xi, int xiLength, double *ans);
