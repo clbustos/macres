@@ -49,7 +49,7 @@ macres inputfile outputfile notenum [velocity flags offset_ms notelength fixedle
 
 Use the file 'mam.wav' in *assets* dir as example. Is mainly a C3 (130.81 Hz), with some problems of tuning at the first and last 'm'. The useful part of the note is between 750 ms and 2500ms
 
-![Mam spectrograph](assests/mam.png "Mam spectrograph")
+![Mam spectrograph](assets/mam.png "Mam spectrograph")
 
 A fairly vanilla setting, with a 2000ms note, 100% velocity of consonant, 100% volume, 100% of original modulation and taking off the noise will be:
 ```
@@ -66,4 +66,12 @@ To generate a perfect pitch, we could set modulation to 0:
 ```
 macres assets/mam.wav test.wav C3 100 ? 750 2000 200 1200 100 0
 ```
+
+# Implementation
+
+This resampler uses the  [World](https://github.com/mmorise/World) library to implements the synthesis.
+Specifically, uses some (relatively old) specs:
+
+* DIO: estimate F0 contour
+* Platinum: Method to extract excitation signals for voice synthesis system based on PLATINUM
 

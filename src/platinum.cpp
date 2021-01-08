@@ -280,11 +280,13 @@ void getWedgeList(double *x, int xLen, int vuvNum, int *stList, int *edList, int
 	free(tmpWav);
 }
 
-// PLATINUM Version 0.0.4. 恐らくこの仕様で確定です．
-// Aperiodicity estimation based on PLATINUM
+// PLATINUM Version 0.0.4.
+// Method to extract excitation signals for voice synthesis system based on PLATINUM
+// Check: https://www.jstage.jst.go.jp/article/ast/33/2/33_2_123/_pdf
+// Check World library before 0.1.4
 
-void pt100(double *x, int xLen, int fs, double *timeAxis, double *f0, 
-		 double **residualSpecgram)
+    void pt100(double *x, int xLen, int fs, double *timeAxis, double *f0,
+             double **residualSpecgram)
 {
 	int i, j, index;
 	double framePeriod = (timeAxis[1]-timeAxis[0])*1000.0;
@@ -381,7 +383,8 @@ void pt100(double *x, int xLen, int fs, double *timeAxis, double *f0,
 	free(pulseLocations);
 	free(totalPhase); free(f0interpolatedRaw); free(signalTime);
 	free(wedgeList);
-	free(edList); free(stList);
+	free(edList);
+	free(stList);
 	return;
 }
 

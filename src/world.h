@@ -45,7 +45,7 @@ int getFFTLengthForStar(int fs);
 //		  double **specgram);
 //void getMinimumPhaseSpectrum(double *inputSpec, fftw_complex *spectrum, fftw_complex *cepstrum, int fftl);
 
-// 非周期性指標推定法 PLATINUM : 名称未定
+// Aperiodic estimatimation based on  PLATINUM : 名称未定
 void pt100(double *x, int xLen, int fs, double *timeAxis, double *f0,
 		 double **residualSpecgram);
 

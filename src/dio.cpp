@@ -25,10 +25,16 @@ int GetNumDIOSamples(int sample_rate, int num_samples, double frame_period)
 	return (int)((double)num_samples / (double)sample_rate * 1000.0 / frame_period) + 1;
 }
 
-// DIO (Distributed Inline filter Operation) to filter waveform into F0.
-// waveform	: Input signal
-// num_samples : Length of sample
-// f0	: where to put result?
+/**
+ *  DIO (Distributed Inline filter Operation) to filter waveform into F0.
+ * @param waveform  Input signal as double between [-1,+1]
+ * @param num_samples  Length of sample
+ * @param sample_rate
+ * @param frame_period
+ * @param time_axis
+ * @param f0 where to put result?
+ */
+
 void dio(double *waveform, int num_samples, int sample_rate, double frame_period, 
 		 double *time_axis, double *f0)
 {
