@@ -178,7 +178,10 @@ double getFreqAvg(double f0[], int num_frames)
 }
 
 /**
+ * Base 64 representation of numbers
  * Copied from Ameya's world4utau.cpp
+ * Is very weird: 'A'=0, 'Z'= an so on, until '/'=63
+ * Order: A-Z a-z 0-9  + /
  */
 int get64(int c)
 {
@@ -1183,6 +1186,8 @@ int main(int argc, char *argv[])
 	st = snum_framesgthMsec + offset_ms;
 	ed = inpunum_framesgthMsec - cutoff_ms;
 
+    // number of frames depends on DIO settings, 
+	// set by FRAMEPERIOD constant
 	num_frames2 = stretchTime(f0, num_frames, fftl, residualSpecgramIndex,
 			fixedF0, num_frames2, fixedResidualSpecgramIndex,
 			os/(int)FRAMEPERIOD, st/(int)FRAMEPERIOD, min(ed/(int)FRAMEPERIOD, num_frames-1),
@@ -1191,7 +1196,7 @@ int main(int argc, char *argv[])
 		fprintf(stderr, "Error while stretching sample.\n");
 		return 0;
 	}
-	printf("Num frames=%d\n", num_frames2);
+	printf("Num frames (pitch detection by DIO)=%d\n", num_frames2);
 
 	// Let the world4utau library handle the pitchbends.
 	int *pitch = NULL;
@@ -1206,7 +1211,7 @@ int main(int argc, char *argv[])
 		// 96 pitch steps in a beat.
 		pStep = (int)(60.0 / 96.0 / tempo * sample_rate + 0.5);
 		pLen = num_samples2 / pStep + 1;
-		printf("Tempo: %0.3f. Step length: %d\n", tempo, pLen);
+		printf("Tempo: %0.3f. Step number: %d. Step length: %d\n", tempo, pStep, pLen);
 		pitch = (int*)malloc((pLen+1) * sizeof(int));
 		memset(pitch, 0, (pLen+1) * sizeof(int));
 		decipherPitch(argv[PITCHBENDS], pitch, pLen);
