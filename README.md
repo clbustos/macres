@@ -47,25 +47,31 @@ macres inputfile outputfile notenum [velocity flags offset_ms notelength fixedle
 
 # Example
 
-Use the file 'mam.wav' in *assets* dir as example. Is mainly a C3 (130.81 Hz), with some problems of tuning at the first and last 'm'. The useful part of the note is between 750 ms and 2500ms
+Use the file 'mam.wav' in *assets* dir as example. Is mainly a C3 (130.81 Hz), with some problems of tuning at the first and last 'm'. The useful part of the note is between 750 ms and 2500ms.
+Note the differences on amplitude of consonants and vowels, created to help to understand the changes of the resampler.
 
-![Mam spectrograph](assets/mam.png "Mam spectrograph")
+![Mam spectrograph](assets/mam.png)
 
-A fairly vanilla setting, with a 2000ms note, 100% velocity of consonant, 100% volume, 100% of original modulation and taking off the noise will be:
+A fairly vanilla setting, with a 5000ms note, 100% velocity of consonant, 100% volume, 100% of original modulation and taking off the noise will be:
 ```
-macres assets/mam.wav test.wav C3 100 ? 750 2000 200 1200 100 100
+macres assets/mam.wav test.wav C3 100 ? 750 2000 200 1250 100 100
 ```
+
+![Eg.1](assets/eg_1.png)
 
 Note the 200ms for the consonant. If we remove the consonant, the consonant will be played again when original sample length is shorter than required note:
 
 ```
-macres assets/mam.wav test.wav C3 100 ? 750 5000 000 1200 100 100
+macres assets/mam.wav test.wav C3 100 ? 750 5000 000 1250 100 100
 ```
+
+![Eg.2](assets/eg_2.png)
 
 To generate a perfect pitch, we could set modulation to 0:
 ```
-macres assets/mam.wav test.wav C3 100 ? 750 2000 200 1200 100 0
+macres assets/mam.wav test.wav C3 100 ? 750 5000 200 1250 100 0
 ```
+![Eg.3](assets/eg_3.png)
 
 # Implementation
 
