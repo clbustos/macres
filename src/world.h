@@ -1,14 +1,7 @@
-// MacRes v0.0.1 1/7/18
 
-// 音声分析合成法 WORLD by M. Morise
-//
-// FFTWを使うので，別途インストールが必要です．
-//
+#ifndef MACRES_WORLD_H
+#define MACRES_WORLD_H
 
-// 現状で分かっているバグ
-// decimateForF0 : 開始直後・終了間際4サンプルくらいに誤差が入ります．
-//#include <fftsg.h>
-//#include <fftw3.h>
 #include <old_fft.h>
 
 #include <stdlib.h>
@@ -16,6 +9,9 @@
 #include <math.h>
 
 #define PI 3.1415926535897932384
+
+// Number of milliseconds in a frame that DIO looks at.
+#define FRAMEPERIOD 2.0
 
 // windowsならでは
 #pragma warning( disable : 4996 )
@@ -83,3 +79,5 @@ void old_filterForDecimate(double *x, int xLen, double *y, int r);
 int  myround(double x);
 void diff(double *x, int xLength, double *ans);
 void interp1Q(double x, double shift, double *y, int xLength, double *xi, int xiLength, double *ans);
+
+#endif //MACRES_WORLD_H

@@ -2,6 +2,10 @@
 #include <stdio.h>
 #include <math.h>
 
+
+#ifndef MACRES_OLD_FFT_H
+#define MACRES_OLD_FFT_H
+
 #define PI 3.1415926535897932384
 
 #define FFT_FORWARD 1
@@ -34,3 +38,5 @@ void old_fft_destroy_plan(old_fft_plan p);
 // hidden functions
 void old_rdft(int n, int isgn, double *a, int *ip, double *w);
 void old_cdft(int n, int isgn, double *a, int *ip, double *w);
+
+#endif //MACRES_OLD_FFT_H
