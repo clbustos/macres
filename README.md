@@ -91,7 +91,7 @@ So:
 * 1 semitone up: Bk (100)
 * 2 semitones up: DI (200)
 * 1 semitone down: +c (3996-4096= -100)
-* 2 semitones down: 84 (3896-4096 = -100)
+* 2 semitones down: 84 (3896-4096 = -200)
 
 To repeat a value, you use the format #TIMES# after the note. So, to maintain the base note for  100 steps, you could use AA#100#
 

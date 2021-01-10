@@ -180,7 +180,7 @@ double getFreqAvg(double f0[], int num_frames)
 /**
  * Base 64 representation of numbers
  * Copied from Ameya's world4utau.cpp
- * Is very weird: 'A'=0, 'Z'= an so on, until '/'=63
+ * Is very weird: 'A'=0, 'Z'=25 an so on, until '/'=63
  * Order: A-Z a-z 0-9  + /
  */
 int get64(int c)
