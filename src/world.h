@@ -9,7 +9,7 @@
 // decimateForF0 : 開始直後・終了間際4サンプルくらいに誤差が入ります．
 //#include <fftsg.h>
 //#include <fftw3.h>
-#include <fft.h>
+#include <old_fft.h>
 
 #include <stdlib.h>
 #include <windows.h>
@@ -34,9 +34,9 @@
 // DEFAULT_F0は，0.0.4での新機能．調整の余地はあるが，暫定的に決定する．
 
 // F0推定法 DIO : Distributed Inline-filter Operation
-void dio(double *x, int xLen, int fs, double framePeriod,
+void old_dio(double *x, int xLen, int fs, double framePeriod,
 		 double *timeAxis, double *f0);
-int GetNumDIOSamples(int sample_rate, int num_samples, double frame_period);
+int old_GetNumDIOSamples(int sample_rate, int num_samples, double frame_period);
 
 // スペクトル包絡推定法 STAR : Synchronous Technique and Adroit Restoration
 int getFFTLengthForStar(int fs);
@@ -69,14 +69,14 @@ void synthesisPt101(double fixedDefault_f0, double *f0, int tLen, double **aperi
 					int fftl, double framePeriod, int fs, double *synthesisOut, int xLen);
 //------------------------------------------------------------------------------------
 // Matlab 関数の移植
-double std2(double *x, int xLen);
+double old_std2(double *x, int xLen);
 void inv(double **r, int n, double **invr);
 //void fftfilt(double *x, int xlen, double *h, int hlen, int fftl, double *y);
 float randn(void);
-void histc(double *x, int xLen, double *y, int yLen, int *index);
-void interp1(double *t, double *y, int iLen, double *t1, int oLen, double *y1);
-long decimateForF0(double *x, int xLen, double *y, int r);
-void filterForDecimate(double *x, int xLen, double *y, int r);
+void old_histc(double *x, int xLen, double *y, int yLen, int *index);
+void old_interp1(double *t, double *y, int iLen, double *t1, int oLen, double *y1);
+long old_decimateForF0(double *x, int xLen, double *y, int r);
+void old_filterForDecimate(double *x, int xLen, double *y, int r);
 int  myround(double x);
 void diff(double *x, int xLength, double *ans);
 void interp1Q(double x, double shift, double *y, int xLength, double *xi, int xiLength, double *ans);

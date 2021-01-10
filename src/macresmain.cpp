@@ -9,6 +9,7 @@
 #include <windows.h>
 
 #include "world.h"
+#include "world/dio.h"
 #include "wavread.h"
 
 #include <math.h>
@@ -36,12 +37,13 @@ inline DWORD timeGetTime() { return (DWORD)time(NULL) * 1000; }
 #pragma comment(lib, "winmm.lib")
 
 
-void F0ToFile(double* f0, int num_frames)
+void F0ToFile(double* f0, int num_frames, const char *filename)
 {
 	FILE *file;
 	int i;
 
-	file = fopen("/tmp/f0list.txt", "w");
+	file = fopen(filename, "w");
+	fprintf(file, "time, value\n");
 	for(i = 0; i < num_frames; i++)
 	{
 		fprintf(file,"%d,%f\n",i ,f0[i]);
@@ -49,7 +51,7 @@ void F0ToFile(double* f0, int num_frames)
 	fclose(file);
 }
 
-void speqToFile(fft_complex * spec, int fftl)
+void speqToFile(old_fft_complex * spec, int fftl)
 {
 	FILE *file;
 	int i;
@@ -75,7 +77,7 @@ void createFinalPitch(double *f0, int num_frames, double *pitchBend, int bLen, i
 	for(i = 0;i < num_frames;i++) time1[i] = (double)i * FRAMEPERIOD;
     for(i = 0;i < bLen;i++) time2[i] = (double)i * pStep / (double)sample_rate * 1000.0 + offset_ms/1000.0;
 	time2[0] = 0;
-	interp1(time2, pitchBend, bLen, time1, num_frames, pitch);
+	old_interp1(time2, pitchBend, bLen, time1, num_frames, pitch);
 
 	for(i = (int)(offset_ms*FRAMEPERIOD/1000);i < num_frames;i++) f0[i] *= pitch[i];
 
@@ -476,16 +478,16 @@ void f0Lpf(double *f0, int num_frames, int flag_d)
 /**
  * Create wave specgram for equalizing.
  */
-void createWaveSpec(double *waveform, int xLen, int fftl, int equLen, fft_complex **waveSpecgram)
+void createWaveSpec(double *waveform, int xLen, int fftl, int equLen, old_fft_complex **waveSpecgram)
 {
 	int i, j;
 
 	double *waveBuff;
-	fft_plan			wave_f_fft;				// fft set
-	fft_complex		*waveSpec;					// Specgram
+	old_fft_plan			wave_f_fft;				// fft set
+	old_fft_complex		*waveSpec;					// Specgram
 	waveBuff = (double *)malloc(sizeof(double) * fftl);
-	waveSpec = (fft_complex *)malloc(sizeof(fft_complex) * fftl);
-	wave_f_fft = fft_plan_dft_r2c_1d(fftl, waveBuff, waveSpec, FFT_ESTIMATE);
+	waveSpec = (old_fft_complex *)malloc(sizeof(old_fft_complex) * fftl);
+	wave_f_fft = old_fft_plan_dft_r2c_1d(fftl, waveBuff, waveSpec, FFT_ESTIMATE);
 
 	int offset_ms;
 
@@ -499,7 +501,7 @@ void createWaveSpec(double *waveform, int xLen, int fftl, int equLen, fft_comple
 		}
 
 		// Apply fft.
-		fft_execute(wave_f_fft);
+		old_fft_execute(wave_f_fft);
 
 		// Load spectrogram into memory.
 		for(j = 0;j < fftl/2+1; j++)
@@ -509,7 +511,7 @@ void createWaveSpec(double *waveform, int xLen, int fftl, int equLen, fft_comple
 		}
 	}
 
-	fft_destroy_plan(wave_f_fft);
+	old_fft_destroy_plan(wave_f_fft);
 	free(waveBuff);
 	free(waveSpec);
 
@@ -518,15 +520,15 @@ void createWaveSpec(double *waveform, int xLen, int fftl, int equLen, fft_comple
 /**
  * Rebuild wave from spectrogram
  */
-void rebuildWave(double *waveform, int xLen, int fftl, int equLen, fft_complex **waveSpecgram)
+void rebuildWave(double *waveform, int xLen, int fftl, int equLen, old_fft_complex **waveSpecgram)
 {
 	int i, j;
 	double *waveBuff;
-	fft_plan			wave_i_fft;				// fft set
-	fft_complex		*waveSpec;	// Spectrogram.
+	old_fft_plan			wave_i_fft;				// fft set
+	old_fft_complex		*waveSpec;	// Spectrogram.
 	waveBuff = (double *)malloc(sizeof(double) * fftl);
-	waveSpec = (fft_complex *)malloc(sizeof(fft_complex) * fftl);
-	wave_i_fft = fft_plan_dft_c2r_1d(fftl, waveSpec, waveBuff, FFT_ESTIMATE);
+	waveSpec = (old_fft_complex *)malloc(sizeof(old_fft_complex) * fftl);
+	wave_i_fft = old_fft_plan_dft_c2r_1d(fftl, waveSpec, waveBuff, FFT_ESTIMATE);
 
 	int offset_ms;
 	for(i = 0;i < xLen;i++) waveform[i] = 0;
@@ -544,7 +546,7 @@ void rebuildWave(double *waveform, int xLen, int fftl, int equLen, fft_complex *
 
 
 		// Apply fft.
-		fft_execute(wave_i_fft);
+		old_fft_execute(wave_i_fft);
 
 		for(j = 0;j < fftl; j++) waveBuff[j] /= fftl;
 
@@ -553,7 +555,7 @@ void rebuildWave(double *waveform, int xLen, int fftl, int equLen, fft_complex *
 
 	}
 
-	fft_destroy_plan(wave_i_fft);
+	old_fft_destroy_plan(wave_i_fft);
 	free(waveBuff);
 	free(waveSpec);
 
@@ -562,7 +564,7 @@ void rebuildWave(double *waveform, int xLen, int fftl, int equLen, fft_complex *
 /**
  * Apply the 'B' flag (breath)
  */
-void breath2(double *f0, int num_frames, int sample_rate, double *waveform, int xLen, fft_complex **waveSpecgram,int equLen, int fftl, int flag_B)
+void breath2(double *f0, int num_frames, int sample_rate, double *waveform, int xLen, old_fft_complex **waveSpecgram,int equLen, int fftl, int flag_B)
 {
 	int i, j;
 
@@ -570,9 +572,9 @@ void breath2(double *f0, int num_frames, int sample_rate, double *waveform, int 
 	double *noiseData;
 	double *noiseBuff;
 	double *noise;
-	fft_plan			noise_f_fft;				// fft set
-	fft_plan			noise_i_fft;				// fft set
-	fft_complex		*noiseSpec;	// Spectrogram
+	old_fft_plan			noise_f_fft;				// fft set
+	old_fft_plan			noise_i_fft;				// fft set
+	old_fft_complex		*noiseSpec;	// Spectrogram
 
 	noiseData = (double *)malloc(sizeof(double) * xLen);
 	for(i=0;i < xLen; i++) noiseData[i] = (double)rand()/RAND_MAX - 0.5;
@@ -580,13 +582,13 @@ void breath2(double *f0, int num_frames, int sample_rate, double *waveform, int 
 	for(i=0;i < xLen; i++) noise[i] = 0.0;
 	//for(i=0;i < xLen; i++) noiseData[i] *= noiseData[i] * (noiseData[i] < 0)? -1 : 1;//Play around with noise distribution
 	noiseBuff = (double *)malloc(sizeof(double) * fftl);
-	noiseSpec = (fft_complex *)malloc(sizeof(fft_complex) * fftl);
-	noise_f_fft = fft_plan_dft_r2c_1d(fftl, noiseBuff, noiseSpec, FFT_ESTIMATE);
-	noise_i_fft = fft_plan_dft_c2r_1d(fftl, noiseSpec, noiseBuff, FFT_ESTIMATE);
+	noiseSpec = (old_fft_complex *)malloc(sizeof(old_fft_complex) * fftl);
+	noise_f_fft = old_fft_plan_dft_r2c_1d(fftl, noiseBuff, noiseSpec, FFT_ESTIMATE);
+	noise_i_fft = old_fft_plan_dft_c2r_1d(fftl, noiseSpec, noiseBuff, FFT_ESTIMATE);
 
 	// Prepare the wave FFT.
-	fft_complex		*waveSpec;	// Spectrogram
-	waveSpec = (fft_complex *)malloc(sizeof(fft_complex) * fftl);
+	old_fft_complex		*waveSpec;	// Spectrogram
+	waveSpec = (old_fft_complex *)malloc(sizeof(old_fft_complex) * fftl);
 
 	int offset_ms;
 	double volume;
@@ -612,7 +614,7 @@ void breath2(double *f0, int num_frames, int sample_rate, double *waveform, int 
 										(0.5 - 0.5*cos(2.0*PI*(double)j/(double)fftl));// Multiply the window.
 
 		// Apply fft.
-		fft_execute(noise_f_fft);
+		old_fft_execute(noise_f_fft);
 
 		//Spectrogram wraparound（super slapdash）
 		for(j = 0;j < fftl/2+1; j++) waveSpec[j][0] = sqrt(waveSpecgram[i][j][0] * waveSpecgram[i][j][0] + waveSpecgram[i][j][1] * waveSpecgram[i][j][1]);
@@ -677,7 +679,7 @@ void breath2(double *f0, int num_frames, int sample_rate, double *waveform, int 
 		noiseSpec[fftl/2][1] = 0.0;
 
 		// Reverse FFT
-		fft_execute(noise_i_fft);
+		old_fft_execute(noise_i_fft);
 		for(j = 0;j < fftl; j++) noiseBuff[j] /= fftl;
 
 		// Multiply the window
@@ -696,8 +698,8 @@ void breath2(double *f0, int num_frames, int sample_rate, double *waveform, int 
 	for(i = 0;i < xLen;i++) waveform[i] = waveform[i] * waveRatio + noise[i] * noiseRatio;
 
 	// Clean up.
-	fft_destroy_plan(noise_f_fft);
-	fft_destroy_plan(noise_i_fft);
+	old_fft_destroy_plan(noise_f_fft);
+	old_fft_destroy_plan(noise_i_fft);
 	free(noise);
 	free(noiseData);
 	free(noiseBuff);
@@ -708,7 +710,7 @@ void breath2(double *f0, int num_frames, int sample_rate, double *waveform, int 
 /**
  * Apply the 'O' flag (voice strength)
  */
-void Opening(double *f0, int num_frames, int sample_rate, fft_complex **waveSpecgram,int equLen, int fftl, int flag_O)
+void Opening(double *f0, int num_frames, int sample_rate, old_fft_complex **waveSpecgram,int equLen, int fftl, int flag_O)
 {
 	int i, j;
 	double opn = (double) flag_O / 100.0;
@@ -1094,7 +1096,7 @@ int main(int argc, char *argv[])
 	printf("Length %f [sec]\n", (double)num_samples/(double)sample_rate);
 
 	// Calculate beforehand the number of samples in F0 (one per FRAMEPERIOD ms).
-	num_frames = GetNumDIOSamples(sample_rate, num_samples, FRAMEPERIOD);
+	num_frames = GetSamplesForDIO(sample_rate, num_samples, FRAMEPERIOD);
 	f0 = (double *)malloc(sizeof(double)*num_frames);
 	time_axis  = (double *)malloc(sizeof(double)*num_frames);
 
@@ -1104,12 +1106,25 @@ int main(int argc, char *argv[])
 	{
 		printf("\nAnalysis\n");
 		elapsedTime = timeGetTime();
+/**
+		old_dio(waveform, num_samples, sample_rate, FRAMEPERIOD, time_axis, f0);
 
-		dio(waveform, num_samples, sample_rate, FRAMEPERIOD, time_axis, f0);
 		printf("DIO: %d [msec]\n", timeGetTime() - elapsedTime);
 
+        F0ToFile(f0, num_frames, "test_1.dat");
+**/
 
-		//F0ToFile(f0, num_frames);
+        DioOption dio_option;
+        InitializeDioOption(&dio_option);
+        dio_option.frame_period=FRAMEPERIOD;
+        dio_option.f0_floor = 80;
+        dio_option.f0_ceil = 640;
+        dio_option.channels_in_octave = 2.0;
+        dio_option.speed= 1;
+        Dio(waveform, num_samples, sample_rate, &dio_option, time_axis, f0);
+
+
+		F0ToFile(f0, num_frames, "test_2.dat");
 		//F0's Low Pass Filter
 		if (flag_d !=0)
 		{
@@ -1268,9 +1283,9 @@ int main(int argc, char *argv[])
 	// Equalizing.
 	int equfftL = 1024; // Equalizer's fft length
 	int equLen = (num_samples2 / (equfftL/2)) - 1; //繰り返し回数
-	fft_complex **waveSpecgram;  // spectrogram
-	waveSpecgram = (fft_complex **)malloc(sizeof(fft_complex *) * equLen);
-	for(i = 0;i < equLen;i++) waveSpecgram[i] = (fft_complex *)malloc(sizeof(fft_complex) * (equfftL/2+1));
+	old_fft_complex **waveSpecgram;  // spectrogram
+	waveSpecgram = (old_fft_complex **)malloc(sizeof(old_fft_complex *) * equLen);
+	for(i = 0;i < equLen;i++) waveSpecgram[i] = (old_fft_complex *)malloc(sizeof(old_fft_complex) * (equfftL/2+1));
 
 	// Create wave specgram from y.
 	if(flag_B > 50 || flag_O != 0)

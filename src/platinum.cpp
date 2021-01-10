@@ -5,7 +5,7 @@
 #include <stdio.h> // for debug
 #include <stdlib.h>
 #include <math.h>
-
+#include "world/dio.h"
 // for debugging
 void pulseToFile(int pCount, double *pulseLocations, int *residualSpecgramLength)
 {
@@ -292,7 +292,7 @@ void getWedgeList(double *x, int xLen, int vuvNum, int *stList, int *edList, int
 	double framePeriod = (timeAxis[1]-timeAxis[0])*1000.0;
 
 	int	fftl = (int)pow(2.0, 1.0+(int)(log(3.0*fs/FLOOR_F0+1) / log(2.0)));
-	int tLen = GetNumDIOSamples(fs, xLen, framePeriod);
+	int tLen = GetSamplesForDIO(fs, xLen, framePeriod);
 
 	int vuvNum;
 	vuvNum = 0;
@@ -356,7 +356,7 @@ void getWedgeList(double *x, int xLen, int vuvNum, int *stList, int *edList, int
 
 	for(i = 0;i < tLen;i++) fixedF0[i] = f0[i] == 0 ? DEFAULT_F0 : f0[i]; //F0が0ならデフォルトに補正
 	for(i = 0;i < xLen;i++) signalTime[i] = (double)i / (double)fs;       //サンプル位置の時刻
-	interp1(timeAxis, fixedF0, tLen, signalTime, xLen, f0interpolatedRaw);//各サンプルのF0
+	old_interp1(timeAxis, fixedF0, tLen, signalTime, xLen, f0interpolatedRaw);//各サンプルのF0
 	totalPhase[0] = f0interpolatedRaw[0]*2*PI/(double)fs;                 //各サンプルの位相
 	for(i = 1;i < xLen;i++) totalPhase[i] = totalPhase[i-1] + f0interpolatedRaw[i]*2*PI/(double)fs;
 
@@ -399,7 +399,7 @@ int pt101(double *x, int xLen, int fs, double *timeAxis, double *f0,
 	double framePeriod = (timeAxis[1]-timeAxis[0])*1000.0;
 
 	int	fftl = (int)pow(2.0, 1.0+(int)(log(3.0*fs/FLOOR_F0+1) / log(2.0)));
-	int tLen = GetNumDIOSamples(fs, xLen, framePeriod);
+	int tLen = GetSamplesForDIO(fs, xLen, framePeriod);
 
 	int vuvNum;
 //	vuvNum = 0;
@@ -467,7 +467,7 @@ int pt101(double *x, int xLen, int fs, double *timeAxis, double *f0,
 
 	for(i = 0;i < tLen;i++) fixedF0[i] = f0[i] == 0 ? DEFAULT_F0 : f0[i]; //F0が0ならデフォルトに補正
 	for(i = 0;i < xLen;i++) signalTime[i] = (double)i / (double)fs;       //サンプル位置の時刻
-	interp1(timeAxis, fixedF0, tLen, signalTime, xLen, f0interpolatedRaw);//各サンプルのF0
+	old_interp1(timeAxis, fixedF0, tLen, signalTime, xLen, f0interpolatedRaw);//各サンプルのF0
 	totalPhase[0] = f0interpolatedRaw[0]*2*PI/(double)fs;                 //各サンプルの位相
 	for(i = 1;i < xLen;i++) totalPhase[i] = totalPhase[i-1] + f0interpolatedRaw[i]*2*PI/(double)fs;
 
