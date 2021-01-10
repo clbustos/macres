@@ -1124,7 +1124,7 @@ int main(int argc, char *argv[])
         Dio(waveform, num_samples, sample_rate, &dio_option, time_axis, f0);
 
 
-		F0ToFile(f0, num_frames, "test_2.dat");
+		//F0ToFile(f0, num_frames, "test_2.dat");
 		//F0's Low Pass Filter
 		if (flag_d !=0)
 		{

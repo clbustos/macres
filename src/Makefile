@@ -4,7 +4,7 @@ CFLAGS = -g -O -msse3
 INCLUDES = -I.
 LIBS = 
 
-macres : $(OBJS) old_fft.h mmsystem.h windows.h wavread.h world.h
+macres : $(OBJS)  mmsystem.h windows.h wavread.h world.h
 	$(CXX) -o $@ $(OBJS) $(LIBS) $(CFLAGS)
 
 .cpp.o:

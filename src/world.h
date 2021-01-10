@@ -33,11 +33,14 @@
 // 70 Hzにすると4096点必要になる．
 // DEFAULT_F0は，0.0.4での新機能．調整の余地はあるが，暫定的に決定する．
 
-// F0推定法 DIO : Distributed Inline-filter Operation
+/**
+Obsolete
+
 void old_dio(double *x, int xLen, int fs, double framePeriod,
 		 double *timeAxis, double *f0);
 int old_GetNumDIOSamples(int sample_rate, int num_samples, double frame_period);
 
+ **/
 // スペクトル包絡推定法 STAR : Synchronous Technique and Adroit Restoration
 int getFFTLengthForStar(int fs);
 
